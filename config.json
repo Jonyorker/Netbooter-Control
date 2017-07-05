@@ -1,0 +1,15 @@
+{
+    "PS1":{
+        "name":"Power Strip 1",
+        "ip":"192.168.100.1",
+        "username":"admin",
+        "password":"password"
+    },
+    "PS2":{
+        "name":"Power Strip 2",
+        "ip":"192.168.100.2",
+        "username":"admin",
+        "password":"password"
+    }
+    
+}
