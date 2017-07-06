@@ -1,8 +1,8 @@
 {
     "PS1":{
         "name":"Power Strip 1",
-        "ip":"192.168.100.1",
+        "ip":"10.177.96.26",
         "username":"admin",
-        "password":"password"
-    },    
+        "password":"Rain4Est!"
+    }   
 }
