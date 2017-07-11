@@ -49,13 +49,18 @@ def Comm_Function(COMMAND):
     if recv_status.endswith(b'$A0'):
         msg.set_content('Operation Successful.')     #Set message for email
         msg['Subject'] = 'Operation Successful'
-                                      
+    elif recv_status.endswith(b'$A0\x00'):
+        msg.set_content('Operation Successful.')     #Set message for email
+        msg['Subject'] = 'Operation Successful'                                
     else:                                           #Try again in case delay wasn't enough
         time.sleep(5)                               #Wait for command to complete
         recv_status = sock.recv(2048)               #Receive output
         if recv_status.endswith(b'$A0'):
             msg.set_content('Operation Successful.') #Set message for email
             msg['Subject'] = 'Operation Successful'
+        elif recv_status.endswith(b'$A0\x00'):
+            msg.set_content('Operation Successful.')     #Set message for email
+            msg['Subject'] = 'Operation Successful'   
         else:
             msg.set_content('Operation Failed.')     #Set message for email
             msg['Subject'] = 'Operation Failed'
