@@ -1,44 +1,48 @@
 ###############################################################
 #
 #   Synaccess Networks, Inc.  (www.synaccess-net.com)
-#   Jan. 6th, 2013
-#   Python Script Example 1  
-#   for NP series. 
+#   July 11, 2017
+#   By Al Lounsbury & SharkBytes Asscociates (Jon York)
+#   for NP05 series. 
 #   
 ################################################################
 
-import socket 
-import time 									
+import socket
+import time
+import datetime
 import sys
 import smtplib
 
 from email.message import EmailMessage
 
 ### Set Variables
+global HOST, msg
 HOST = str(sys.argv[1])			            # The remote host IP address
 COMMAND_USER = str(sys.argv[2])                     # The command we wish to send
 PORT = int(23)       				    # The server port number - telnet better than http
 USER = str('admin')
 PASS = str('Rain4Est!')
+#   debugfile = 'E:\\PythonScripts\\pythonlog.txt'
+debugfile = 'C:\\Users\\alounsbu\\My WebSites\\pythondev\\pythonlog.txt'
 
 ### Initialize email variables
-global msg
 msg = EmailMessage()
 msg.set_content('No results yet')
-msg['From'] = 'mdmail@ciena.com'
-msg['To'] = 'alounsbu@ciena.com'
+msg['From'] = 'EBC Power Control <mdmail@ciena.com>'
+msg['To'] = 'Al Lounsbury <alounsbu@ciena.com>'
 
+### Open debug file
+db = open( debugfile, "a")
 
-### Establish if command if on or off
+### Define Functions
 
-if COMMAND_USER == 'ON':
-    COMMAND = 'A7 1'
-elif COMMAND_USER == 'OFF':
-    COMMAND = 'A7 0'
-else :
-    sys.exit()
-
-### Define Function
+def Log_Write( message):
+    global HOST
+    db.write ( str(datetime.datetime.now()) )    # start log entry with date
+    db.write (' ' + str(HOST) + ' ')            # log the host device IP address
+    db.write ( ' ' + str(message) )
+    db.write ( '\n\r')
+    return
 
 def Comm_Function(COMMAND):
     global msg
@@ -64,8 +68,18 @@ def Comm_Function(COMMAND):
         else:
             msg.set_content('Operation Failed.')     #Set message for email
             msg['Subject'] = 'Operation Failed'
-
+            Log_Write ("Command Failure.  Buffer = " + str(recv_status))
     return 
+
+### Establish if command is on or off
+
+if COMMAND_USER == 'ON':
+    COMMAND = 'A7 1'
+elif COMMAND_USER == 'OFF':
+    COMMAND = 'A7 0'
+else :
+    Log_Write ("Invalid Operation defined, not ON or OFF")
+    sys.exit()
 
 ### Establish Connection
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -89,24 +103,30 @@ elif recv.endswith(b'$A0\x00'):
     m = Comm_Function(COMMAND)
 elif recv.endswith(b'$AF'):
     msg.set_content('Failed to Connect.')            #Set message for email
-    msg['Subject'] = 'Failed to Connect'                                               
+    msg['Subject'] = 'Login Failure'
+    Log_Write("Login Failure")
+elif recv.endswith(b'$AF\x00'):
+    msg.set_content('Failed to Connect.')            #Set message for email
+    msg['Subject'] = 'Login Failure'
+    Log_Write("Login Failure")
 else:
     time.sleep(5)                                   #Sleep some more in case of slow communication
-    m = Comm_Function(COMMAND)
+    m = Comm_Function(COMMAND)                      # need to fix - we cannot assume we can continue if here
     
 ### Close connection
 	
 time.sleep(0.5)
-	
 sock.close()
 
 ### Send Email
 smtpObj = smtplib.SMTP('mdmail.ciena.com')
-print (msg)
+Log_Write (msg)
 
 try:
     smtpObj.send_message(msg)
-    print ("Successfully sent email")
+    smtpObj.quit()
+    Log_Write ("Successfully sent email")
 except SMTPException as exception:
-    print ("Error: unable to send email")
+    Log_Write ("Error: unable to send email")
 	
+db.close()      # close debug file
